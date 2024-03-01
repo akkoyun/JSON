@@ -1,8 +1,8 @@
 {
-	"name": "<Library_Name>",
+	"name": "JSON",
 	"version": "1.0.0",
-	"keywords": "<Library_Keywords>",
-	"description": "<Library_Description>",
+	"keywords": "JSON, Arduino, Library, Mehmet Gunce Akkoyun",
+	"description": "This is a JSON library for Arduino. It is designed to be simple and easy to use.",
 	"authors":
 	{
 		"name": "Mehmet Gunce Akkoyun",
@@ -11,7 +11,7 @@
 	},
 	"license": "MIT",
 	"frameworks": "arduino",
-	"headers": "<Library_Header_Name>.h",
+	"headers": "JSON.h",
 	"platforms":
 	[
 		"atmelavr",
@@ -20,7 +20,7 @@
 	"repository":
 	{
 		"type": "git",
-		"url": "https://github.com/akkoyun/<Repo_Name>.git"
+		"url": "https://github.com/akkoyun/JSON.git"
 	},
 	"examples": [
 		{
