@@ -24,10 +24,10 @@
 	},
 	"examples": [
 		{
-			"name": "<Sample_Name>",
-			"base": "examples/<Sample_Folder>",
+			"name": "Handle",
+			"base": "examples/Handle",
 			"files": [
-				"<Sample_Name>.ino"
+				"Handle.ino"
 			]
 		}
 	]
