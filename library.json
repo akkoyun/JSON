@@ -1,6 +1,6 @@
 {
 	"name": "JSON",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"keywords": "JSON, Arduino, Library, Mehmet Gunce Akkoyun",
 	"description": "This is a JSON library for Arduino. It is designed to be simple and easy to use.",
 	"authors":

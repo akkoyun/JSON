@@ -15,49 +15,29 @@
 		#include <Arduino.h>
 	#endif
 
+	// Include Definitions
+	#include "Definitions.h"
+
 	// JSON Library
 	class JSON {
-
-		// Declare Definitions
-		#define _JSON_VALID_ true
-		#define _JSON_INVALID_ false
 
 		// Private Context
 		private:
 
-			// Declare Variables
-			char * _JSON_Buffer;
+			// Declare JSON Buffer
+			char _JSON_Buffer[_JSON_BUFFER_SIZE_];
+
+			// Declare JSON Size
+			uint16_t _JSON_Size;
+
+			// Declare Buffer Size
+			uint16_t _Buffer_Size;
+
+			// Declare JSON State
 			bool _JSON_Valid = _JSON_INVALID_;
 
-			// ASCII Find Function
-			uint16_t Find_Char(const char _Char, const uint8_t _Count = 1) {
-
-				// Declare Counter
-				uint16_t _Counter = 0;
-
-				// Find Char in Buffer
-				for (uint16_t i = 0; this->_JSON_Buffer[i] != '\0'; ++i) {
-
-					// Control for Char
-					if (this->_JSON_Buffer[i] == _Char) {
-
-						// Increase Counter
-						_Counter++;
-
-						// Control for Counter
-						if (_Counter == _Count) return(i);
-
-					}
-
-				}
-
-				// End Function
-				return(0);
-
-			}
-
 			// Variable JSON Function
-			bool Validate(void) {
+			bool Validate(const char * _Buffer) {
 
 				// Declare Variables
 				int8_t _Braces_Count = 0;
@@ -65,10 +45,10 @@
 				bool _in_String = false;
 
 				// Control JSON Data
-				for (int i = 0; this->_JSON_Buffer[i] != '\0'; i++) {
+				for (uint16_t i = 0; i < this->_Buffer_Size; i++) {
 
 					// Control for char
-					switch (this->_JSON_Buffer[i]) {
+					switch (_Buffer[i]) {
 
 						// Control for Braces Open
 						case '{': {
@@ -160,17 +140,17 @@
 			}
 
 			// Get JSON Data from Buffer
-			bool Handle(const char * _Data, char* _JSON, bool _Space = false) {
+			bool Handle(const char * _Data, bool _Space = false) {
 
 				// Declare Variables
 				bool _JSON_Handle = false;
 				uint16_t _Data_Order = 0;
 
 				// Clear JSON Buffer
-				memset(_JSON, '\0', strlen(_JSON));
+				memset(this->_JSON_Buffer, '\0', _JSON_BUFFER_SIZE_);
 
 				// Handle JSON Data
-				for (uint16_t i = 0; i < strlen(_Data); i++) {
+				for (uint16_t i = 0; i < this->_Buffer_Size; i++) {
 
 					// Control for JSON Data Start
 					if (_Data[i] == '{') _JSON_Handle = true;
@@ -179,12 +159,12 @@
 					if (_Space) {
 
 						// Handle With Space
-						if (_JSON_Handle && _Data[i] != '\n' && _Data[i] != '\r') _JSON[_Data_Order++] = _Data[i];
+						if (_JSON_Handle && _Data[i] != '\n' && _Data[i] != '\r') this->_JSON_Buffer[_Data_Order++] = _Data[i];
 
 					} else {
 
 						// Handle Without Space
-						if (_JSON_Handle && _Data[i] != ' ' && _Data[i] != '\n' && _Data[i] != '\r') _JSON[_Data_Order++] = _Data[i];
+						if (_JSON_Handle && _Data[i] != ' ' && _Data[i] != '\n' && _Data[i] != '\r') this->_JSON_Buffer[_Data_Order++] = _Data[i];
 
 					}
 
@@ -193,8 +173,38 @@
 
 				}
 
+				// Set JSON Size
+				this->_JSON_Size = _Data_Order;
+
 				// End Function
 				return (_Data_Order > 2);
+
+			}
+
+			// ASCII Find Function
+			uint16_t Find_Char(const char _Char, const uint8_t _Count = 1) {
+
+				// Declare Counter
+				uint16_t _Counter = 0;
+
+				// Find Char in Buffer
+				for (uint16_t i = 0; this->_JSON_Buffer[i] != '\0'; ++i) {
+
+					// Control for Char
+					if (this->_JSON_Buffer[i] == _Char) {
+
+						// Increase Counter
+						_Counter++;
+
+						// Control for Counter
+						if (_Counter == _Count) return(i);
+
+					}
+
+				}
+
+				// End Function
+				return(0);
 
 			}
 
@@ -202,13 +212,13 @@
 		public:
 
 			// Constructor
-			explicit JSON(const char * _Buffer) {
+			explicit JSON(const char * _Buffer, uint16_t _Size) : _Buffer_Size(_Size) {
 
 				// Validate JSON Data
-				this->Validate();
+				this->_JSON_Valid = this->Validate(_Buffer);
 
 				// Handle JSON Data from Buffer
-				this->Handle(_Buffer, this->_JSON_Buffer, false);
+				if (this->_JSON_Valid == _JSON_VALID_) this->Handle(_Buffer, false);
 
 			}
 
@@ -216,23 +226,23 @@
 			bool isValid(void) {
 
 				// Return JSON Valid
-				return (this->Validate());
+				return (_JSON_Valid);
 
 			}
 
-			// JSON Buffer Function
-			char * Buffer(void) {
+			// Get JSON Size
+			uint16_t Size(void) {
+
+				// Return JSON Size
+				return (this->_JSON_Size);
+
+			}
+
+			// Get JSON Buffer
+			const char * Buffer(void) {
 
 				// Return JSON Buffer
 				return (this->_JSON_Buffer);
-
-			}
-
-			// JSON Buffer Size Function
-			uint16_t Size(void) {
-
-				// Return JSON Buffer Size
-				return (strlen(this->_JSON_Buffer));
 
 			}
 
@@ -248,7 +258,7 @@
 				} _Object;
 
 				// Control for char
-				for (uint16_t i = 0; i < strlen(this->_JSON_Buffer); i++) {
+				for (uint16_t i = 0; i < this->_Buffer_Size; i++) {
 
 					// Count Char
 					if (this->_JSON_Buffer[i] == 34) _Object.Char_Counter++;
@@ -275,12 +285,7 @@
 						memcpy(_Object.Name, &this->_JSON_Buffer[_Key_Start + 1], _Key_End - _Key_Start - 1);
 
 						// Control for Root
-						if (strcmp_P(_Object.Name, (const char PROGMEM *)_Key) == 0) {
-							
-							// Set Object Found
-							_Object.Found = true;
-							
-						}
+						if (strcmp_P(_Object.Name, (const char PROGMEM *)_Key) == 0) _Object.Found = true;
 
 					}
 
@@ -307,12 +312,7 @@
 				} _Object;
 
 				// Control for char
-				for (uint16_t i = 0; i < strlen(this->_JSON_Buffer); i++) {
-
-					// Count Char
-					if (this->_JSON_Buffer[i] == 34) _Object.Char_Counter++;
-					
-				}
+				for (uint16_t i = 0; i < this->_JSON_Size; i++) if (this->_JSON_Buffer[i] == 34) _Object.Char_Counter++;
 
 				// Control for Char Count
 				if (_Object.Char_Counter % 2 == 1) return(0);
