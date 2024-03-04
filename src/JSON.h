@@ -30,9 +30,6 @@
 			// Declare JSON Size
 			uint16_t _JSON_Size;
 
-			// Declare Buffer Size
-			uint16_t _Buffer_Size;
-
 			// Declare JSON State
 			bool _JSON_Valid = _JSON_INVALID_;
 
@@ -45,7 +42,7 @@
 				bool _in_String = false;
 
 				// Control JSON Data
-				for (uint16_t i = 0; i < this->_Buffer_Size; i++) {
+				for (uint16_t i = 0; i < this->_JSON_Size; i++) {
 
 					// Control for char
 					switch (_Buffer[i]) {
@@ -150,7 +147,7 @@
 				memset(this->_JSON_Buffer, '\0', _JSON_BUFFER_SIZE_);
 
 				// Handle JSON Data
-				for (uint16_t i = 0; i < this->_Buffer_Size; i++) {
+				for (uint16_t i = 0; i == 0 || _Data[i - 1] != '\0'; ++i) {
 
 					// Control for JSON Data Start
 					if (_Data[i] == '{') _JSON_Handle = true;
@@ -173,7 +170,7 @@
 
 				}
 
-				// Set JSON Size
+				// Calculate JSON Data Size
 				this->_JSON_Size = _Data_Order;
 
 				// End Function
@@ -212,13 +209,15 @@
 		public:
 
 			// Constructor
-			explicit JSON(const char * _Buffer, uint16_t _Size) : _Buffer_Size(_Size) {
+			explicit JSON(const char * _Buffer) {
 
-				// Validate JSON Data
-				this->_JSON_Valid = this->Validate(_Buffer);
+				// {"Request":{"Event":900,"
 
 				// Handle JSON Data from Buffer
-				if (this->_JSON_Valid == _JSON_VALID_) this->Handle(_Buffer, false);
+				this->Handle(_Buffer, false);
+
+				// Validate JSON Data
+				this->_JSON_Valid = this->Validate(this->_JSON_Buffer);
 
 			}
 
@@ -258,7 +257,7 @@
 				} _Object;
 
 				// Control for char
-				for (uint16_t i = 0; i < this->_Buffer_Size; i++) {
+				for (uint16_t i = 0; i < this->_JSON_Size; i++) {
 
 					// Count Char
 					if (this->_JSON_Buffer[i] == 34) _Object.Char_Counter++;
